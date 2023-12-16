@@ -3,8 +3,9 @@ package Front.Controller
 import Front.Controller.CLIArguments.{CLIArgument, CLIComplicatedArgument, CLISimpleArgument}
 import Front.Loader.{Loader, RandLoader}
 import Front.Loader.FileLoaders.{JPGFileLoader, PNGFileLoader}
-
 import Back.{Output, OutputInConsole, OutputIntoFile}
+import Middle.Filter.{BrightnessFilter, Filter, FlipXFilter, FlipYFilter, InvertFilter}
+import Middle.Convertor.{Convertor, FullLinearConvertor, NonLinearConvertor, ShortLinearConvertor, UserConvertor}
 
 
 class CLIController(args: Array[String]) extends Controller {
@@ -31,6 +32,7 @@ class CLIController(args: Array[String]) extends Controller {
   }
 
   override def getLoader: Loader = {
+    // Set how image going to be input
     var loader: Option[Loader] = Option.empty
 
     for (i <- CLIArgument)
@@ -40,10 +42,49 @@ class CLIController(args: Array[String]) extends Controller {
         case CLISimpleArgument("--image-random") => loader = Option(new RandLoader)
         case CLIComplicatedArgument("--image", List(s)) if s.endsWith(".png") => loader = Option(PNGFileLoader(s))
         case CLIComplicatedArgument("--image", List(s)) if s.endsWith(".jpg") => loader = Option(JPGFileLoader(s))
+        case _ =>
       }
+
     loader match {
       case Some(imageLoader) => imageLoader
       case None => throw new IllegalArgumentException("There is non input argument")
+    }
+  }
+
+  override def getFilters: List[Filter] = {
+    var ret = List[Filter]()
+
+    for (i <- CLIArgument) {
+      i match {
+        case CLISimpleArgument("--invert") => ret = ret.appended(InvertFilter())
+        case CLIComplicatedArgument("--flip",List("x")) => ret.appended(FlipXFilter())
+        case CLIComplicatedArgument("--flip",List("y")) => ret.appended(FlipYFilter())
+        case CLIComplicatedArgument("--brightness",List(s)) => ret.appended(BrightnessFilter(s.toInt))
+        case _ =>
+      }
+    }
+    ret
+  }
+
+  override def getConvertor: Convertor = {
+    // Set to loader its convert table
+    var table: Option[Convertor] = Option.empty
+    for (i <- CLIArgument)
+      i match {
+        case already if ((already.name == "--table" || already.name == "--custom-table") && table.nonEmpty) =>
+          throw new IllegalArgumentException("More than 1 table argument")
+        case CLIComplicatedArgument("--table", List("short")) => table = Option(ShortLinearConvertor())
+        case CLIComplicatedArgument("--table", List("full")) => table = Option(FullLinearConvertor())
+        case CLIComplicatedArgument("--table", List("non-linear")) => table = Option(NonLinearConvertor())
+        case CLIComplicatedArgument("--table", _) => throw new IllegalArgumentException("Unknown name of a table")
+        case CLIComplicatedArgument("--custom-table", List(s)) if (s.nonEmpty && s.length <= 256) =>
+          table = Option(UserConvertor(s))
+        case _ =>
+      }
+
+    table match {
+      case Some(convertor) => convertor
+      case None => ShortLinearConvertor()
     }
   }
 
@@ -56,6 +97,7 @@ class CLIController(args: Array[String]) extends Controller {
           throw new IllegalArgumentException("More than 1 output argument")
         case CLISimpleArgument("--output-console") => outputer = Option(new OutputInConsole)
         case CLIComplicatedArgument("--output-file", List(s)) => outputer = Option(OutputIntoFile(s))
+        case _ =>
       }
     outputer match {
       case Some(imageOutputer) => imageOutputer

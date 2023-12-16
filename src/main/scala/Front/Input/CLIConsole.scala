@@ -13,7 +13,12 @@ class CLIConsole(val args: Array[String]) extends Input {
     val controller: Controller = new CLIController(args)
 
     try {
-      val loader
+      val loader = controller.getLoader
+      val filters = controller.getFilters
+      val convertor = controller.getConvertor
+      val outputer = controller.getOutputer
+
+      val tmp = loader.getGreyImage()
 
     } catch {
       case e: Exception => println(e.getMessage)

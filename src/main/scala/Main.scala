@@ -1,5 +1,7 @@
-package Main
+import Front.Input.{Input, CLIConsole}
 
 object Main extends App {
-  println("Hello there")
+  val app : Input = new CLIConsole(args)
+
+  app.loadAndRun()
 }
