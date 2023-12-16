@@ -10,8 +10,8 @@ trait Loader {
 
   def loadImage(): Image[Pixel]
 
-  def getGreyImage(): Image[Pixel] = {
-    var image_tmp: Image[Pixel] = MatrixImage[Pixel](Array.ofDim(image.getHeight, image.getWidth))
+  def getGreyImage(): Image[GreyPixel] = {
+    var image_tmp: Image[GreyPixel] = MatrixImage[GreyPixel](Array.ofDim(image.getHeight, image.getWidth))
     var i = 0
     while (i < image.getHeight) {
       var j = 0

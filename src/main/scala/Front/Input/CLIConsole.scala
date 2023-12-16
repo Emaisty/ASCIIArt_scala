@@ -18,7 +18,17 @@ class CLIConsole(val args: Array[String]) extends Input {
       val convertor = controller.getConvertor
       val outputer = controller.getOutputer
 
-      val tmp = loader.getGreyImage()
+      //get grey scale image
+      var greyImage = loader.getGreyImage()
+
+      //apply filters to grey scale
+      for (i <- filters)
+        greyImage = i.applyFilter(greyImage)
+
+
+
+
+
 
     } catch {
       case e: Exception => println(e.getMessage)
