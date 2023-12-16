@@ -25,10 +25,10 @@ class CLIConsole(val args: Array[String]) extends Input {
       for (i <- filters)
         greyImage = i.applyFilter(greyImage)
 
+      //Convert into ascii by table and print
+      val tmp = convertor.convert(greyImage)
 
-
-
-
+      outputer.output(tmp)
 
     } catch {
       case e: Exception => println(e.getMessage)
