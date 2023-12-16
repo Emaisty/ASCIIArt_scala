@@ -1,5 +1,5 @@
 package Back
 
-class OutputIntoFile extends Output {
+case class OutputIntoFile(file : String) extends Output {
 
 }

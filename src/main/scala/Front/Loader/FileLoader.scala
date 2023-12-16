@@ -1,5 +1,5 @@
 package Front.Loader
 
-class FileLoader(val file: String) extends Loader {
+abstract class FileLoader(file: String) extends Loader {
 
 }
