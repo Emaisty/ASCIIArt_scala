@@ -1,9 +1,8 @@
 package MainTest
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-
-class MainTest extends FunSuite {
+class MainTest extends AnyFunSuite {
   test("Foo"){
 
   }
