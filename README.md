@@ -1,13 +1,19 @@
 # ASCII Art
 
-[![pipeline status](https://gitlab.fit.cvut.cz/BI-OOP/B201/asciiart/badges/master/pipeline.svg)](https://gitlab.fit.cvut.cz/BI-OOP/B201/asciiart)
+for arguments run:
 
-The idea of this project is to load images, translate them into ASCII ART images, optionally apply filters, and save them. (https://courses.fit.cvut.cz/BI-OOP/projects/ASCII-art.html)
+```scala
+run --help
+```
+## Structure
 
-## How to do it
+**2 main parts:**
+- app - UI, how input going to be processed (right now only by CLI) and controller, which parse argument input and create convertor
+- Ascii convertor:
+- - Front - loader. Load/Crete image
+- - Middle:
+- - - Convertor - from image in RGB to grey
+- - - Filter - applies (if user said so) filters on greyscale image
+- - - Table Convertor - from greyscale image to ascii art
+- - Back - print ascii art
 
-1. **Make your repository private**
-2. **Read [the instructions](https://courses.fit.cvut.cz/BI-OOP/projects/ASCII-art.html)**
-3. Play [lofi hip hop radio](https://www.youtube.com/watch?v=jfKfPfyJRdk)
-4. [???](https://www.youtube.com/watch?v=ZXsQAXx_ao0)
-5. Profit
