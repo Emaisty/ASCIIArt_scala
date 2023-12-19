@@ -7,11 +7,14 @@ import AsciiConvertor.Common.Image.Pixel.{GreyPixel, Pixel, RGBPixel}
 import java.io.File
 import javax.imageio.ImageIO
 
+/*
+load image in format of Image[RGB] from file
+ */
 abstract class FileLoader(file: String) extends Loader {
-  override def loadImage(): Image[Pixel] = {
+  override def loadImage(): Image[RGBPixel] = {
     val ofile = new File(file)
     val imageBuffer = ImageIO.read(ofile)
-    var image_tmp: Image[Pixel] = MatrixImage[Pixel](Array.ofDim(imageBuffer.getHeight, imageBuffer.getWidth))
+    var image_tmp: Image[RGBPixel] = MatrixImage[RGBPixel](Array.ofDim(imageBuffer.getHeight, imageBuffer.getWidth))
     var i = 0
     while (i < imageBuffer.getHeight) {
       var j = 0

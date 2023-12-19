@@ -3,7 +3,7 @@ package app.Controller
 import AsciiConvertor.Back.{Output, OutputInConsole, OutputIntoFile}
 import AsciiConvertor.Front.FileLoaders.{JPGFileLoader, PNGFileLoader}
 import AsciiConvertor.Front.{Loader, RandLoader}
-import AsciiConvertor.Middle.Convertor.{Convertor, FullLinearConvertor, NonLinearConvertor, ShortLinearConvertor, UserConvertor}
+import AsciiConvertor.Middle.Convertor.Table.{Convertor, FullLinearConvertor, NonLinearConvertor, ShortLinearConvertor, UserConvertor}
 import AsciiConvertor.Middle.Filter.{BrightnessFilter, Filter, FlipXFilter, FlipYFilter, InvertFilter}
 import app.Controller.CLIArguments.{CLIArgument, CLIComplicatedArgument, CLISimpleArgument}
 
@@ -20,7 +20,7 @@ class CLIController(args: Array[String]) extends Controller {
           ret = ret.appended(CLISimpleArgument(s))
           arguments -= arguments.head
         }
-        case c if (arguments.length > 2 && Set("--image", "--flip", "--brightness", "--table", "--custom-table", "--output-file").contains(c)) => {
+        case c if (arguments.length > 1 && Set("--image", "--flip", "--brightness", "--table", "--custom-table", "--output-file").contains(c)) => {
           ret = ret.appended(CLIComplicatedArgument(c, List(arguments(1))))
           arguments -= arguments.head
           arguments -= arguments.head
@@ -39,9 +39,11 @@ class CLIController(args: Array[String]) extends Controller {
       i match {
         case already if ((already.name == "--image-random" || already.name == "--image") && loader.nonEmpty) =>
           throw new IllegalArgumentException("More than 1 input argument")
-        case CLISimpleArgument("--image-random") => loader = Option(new RandLoader)
+        case CLISimpleArgument("--image-random") => loader = Option(RandLoader())
         case CLIComplicatedArgument("--image", List(s)) if s.endsWith(".png") => loader = Option(PNGFileLoader(s))
         case CLIComplicatedArgument("--image", List(s)) if s.endsWith(".jpg") => loader = Option(JPGFileLoader(s))
+        case CLIComplicatedArgument("--image", List(s)) if (!s.endsWith(".jpg") || !s.endsWith(".png"))  =>
+          throw new IllegalArgumentException("Unsupported file extension")
         case _ =>
       }
 
@@ -51,8 +53,8 @@ class CLIController(args: Array[String]) extends Controller {
     }
   }
 
-  override def getFilters: List[Filter] = {
-    var ret = List[Filter]()
+  override def getFilters: Seq[Filter] = {
+    var ret = Seq[Filter]()
 
     for (i <- CLIArgument) {
       i match {
@@ -88,21 +90,21 @@ class CLIController(args: Array[String]) extends Controller {
     }
   }
 
-  override def getOutputer: Output = {
-    var outputer: Option[Output] = Option.empty
+  override def getOutputer: Seq[Output[Char]] = {
+    var outputers = Seq[Output[Char]]()
 
-    for (i <- CLIArgument)
+    for (i <- CLIArgument) {
       i match {
-        case already if ((already.name == "--output-console" || already.name == "--output-file") && outputer.nonEmpty) =>
-          throw new IllegalArgumentException("More than 1 output argument")
-        case CLISimpleArgument("--output-console") => outputer = Option(new OutputInConsole)
-        case CLIComplicatedArgument("--output-file", List(s)) => outputer = Option(OutputIntoFile(s))
+        case CLISimpleArgument("--output-console") => outputers = outputers.appended(OutputInConsole())
+        case CLIComplicatedArgument("--output-file", List(s)) => outputers = outputers.appended(OutputIntoFile(s))
         case _ =>
       }
-    outputer match {
-      case Some(imageOutputer) => imageOutputer
-      case None => throw new IllegalArgumentException("There is non output argument")
     }
+
+    if (outputers.isEmpty)
+      throw new IllegalArgumentException("There is non output argument")
+      outputers
+
   }
 
 

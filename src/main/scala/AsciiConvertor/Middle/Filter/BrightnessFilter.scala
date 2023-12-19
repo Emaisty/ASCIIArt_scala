@@ -11,7 +11,7 @@ case class BrightnessFilter(num: Int) extends Filter {
     while (i < image.getHeight) {
       var j = 0
       while (j < image.getWidth) {
-        var newPixel = image.getPixel(i, j).getValue + num;
+        val newPixel = image.getPixel(i, j).getValue + num
         if (newPixel > 255)
           image_tmp = image_tmp.setPixel(i, j, GreyPixel(255))
         else{

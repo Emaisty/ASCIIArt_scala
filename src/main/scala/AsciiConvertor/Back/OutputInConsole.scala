@@ -1,10 +1,12 @@
 package AsciiConvertor.Back
 
-class OutputInConsole extends Output {
-  override def output(image: Array[Array[Char]]) = {
-    for (i <- image) {
-      for (j <- i) {
-        print(j)
+import AsciiConvertor.Common.Image.Image.Image
+
+case class OutputInConsole() extends Output[Char] {
+  override def output(image: Image[Char] ) = {
+    for (i <- 0 until image.getHeight) {
+      for (j <- 0 until image.getWidth) {
+        print(image.getPixel(i,j))
       }
       print("\n")
     }

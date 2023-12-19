@@ -1,5 +1,8 @@
 package AsciiConvertor.Common.Image.Pixel
 
+/*
+  Pixel of Image
+ */
 trait Pixel {
   def getValue : Int
 

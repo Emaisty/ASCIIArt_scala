@@ -2,7 +2,7 @@ package app.Controller
 
 import AsciiConvertor.Back.Output
 import AsciiConvertor.Front.Loader
-import AsciiConvertor.Middle.Convertor.Convertor
+import AsciiConvertor.Middle.Convertor.Table.Convertor
 import AsciiConvertor.Middle.Filter.Filter
 
 /*
@@ -14,7 +14,7 @@ trait Controller {
 
   def getConvertor: Convertor
 
-  def getOutputer: Output
+  def getOutputer: Seq[Output[Char]]
 
-  def getFilters: List[Filter]
+  def getFilters: Seq[Filter]
 }

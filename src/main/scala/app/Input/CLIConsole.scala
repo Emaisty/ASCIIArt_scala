@@ -2,6 +2,10 @@ package app.Input
 
 import app.Controller.{CLIController, Controller}
 
+import AsciiConvertor.Middle.Convertor.Image.{ImageConvertor,FromRGBToGreyImageConvertor}
+
+import AsciiConvertor.Common.Helper.Helper
+
 /*
   CLIConsole -- application, which runs in console with command line input
   @param args - program arguments
@@ -10,25 +14,34 @@ class CLIConsole(val args: Array[String]) extends Input {
 
 
   override def loadAndRun(): Unit = {
-    val controller: Controller = new CLIController(args)
+
+    if (args.length == 1 && args.head == "--help"){
+      new Helper
+      return
+    }
 
     try {
+
+
+      val controller: Controller = new CLIController(args)
+
       val loader = controller.getLoader
       val filters = controller.getFilters
       val convertor = controller.getConvertor
-      val outputer = controller.getOutputer
+      val outputers = controller.getOutputer
 
       //get grey scale image
-      var greyImage = loader.getGreyImage()
+      var greyImage = FromRGBToGreyImageConvertor().convert(loader.loadImage())
 
       //apply filters to grey scale
       for (i <- filters)
         greyImage = i.applyFilter(greyImage)
 
       //Convert into ascii by table and print
-      val tmp = convertor.convert(greyImage)
+      val ascii_image = convertor.convert(greyImage)
 
-      outputer.output(tmp)
+      for (i <- outputers)
+        i.output(ascii_image)
 
     } catch {
       case e: Exception => println(e.getMessage)

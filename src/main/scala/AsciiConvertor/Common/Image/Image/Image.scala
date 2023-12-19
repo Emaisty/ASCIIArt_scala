@@ -1,5 +1,8 @@
 package AsciiConvertor.Common.Image.Image
 
+/*
+represent Image of type V.
+ */
 trait Image [V]{
 
   def getPixel(y : Int, x : Int) : V

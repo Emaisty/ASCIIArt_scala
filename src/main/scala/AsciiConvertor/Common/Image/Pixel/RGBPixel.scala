@@ -10,6 +10,6 @@ case class RGBPixel(red: Int, green: Int, blue: Int) extends Pixel {
     colour <= 255 && colour >= 0
   }
 
-  override def getValue: Int = ((0.3 * red) + (0.59 * green) + (0.11 * blue)).toInt
+  override def getValue: Int = (red+green+blue)/3
 
 }

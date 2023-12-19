@@ -7,7 +7,7 @@ import org.scalatest.funsuite.AnyFunSuite
 class FlipYFilterTest extends AnyFunSuite {
 
   test("Flip y with odd rows"){
-    val filter = new FlipYFilter()
+    val filter = FlipYFilter()
     val input: Image[GreyPixel] = MatrixImage(Array(
       Array(GreyPixel(0), GreyPixel(1), GreyPixel(2)),
       Array(GreyPixel(3), GreyPixel(4), GreyPixel(5)),
@@ -21,7 +21,7 @@ class FlipYFilterTest extends AnyFunSuite {
   }
 
   test("Flip y with even columns"){
-    val filter = new FlipYFilter()
+    val filter = FlipYFilter()
     val input: Image[GreyPixel] = MatrixImage(Array(
       Array(GreyPixel(0), GreyPixel(1), GreyPixel(2),GreyPixel(2)),
       Array(GreyPixel(12), GreyPixel(16), GreyPixel(3),GreyPixel(7)),
@@ -37,7 +37,7 @@ class FlipYFilterTest extends AnyFunSuite {
   }
 
   test("Flip y multiple times"){
-    val filter = new FlipYFilter()
+    val filter = FlipYFilter()
     val input: Image[GreyPixel] = MatrixImage(Array(
       Array(GreyPixel(0), GreyPixel(1), GreyPixel(2)),
       Array(GreyPixel(3), GreyPixel(4), GreyPixel(5)),

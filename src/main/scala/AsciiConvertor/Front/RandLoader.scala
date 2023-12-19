@@ -8,12 +8,12 @@ import scala.util.Random
 import scala.math.abs
 
 
-class RandLoader extends Loader {
+case class RandLoader() extends Loader {
 
-  override def loadImage(): Image[Pixel] = {
+  override def loadImage(): Image[RGBPixel] = {
     val width = abs(Random.nextInt()) % 100
     val height = abs(Random.nextInt()) % 70
-    var image_tmp: Image[Pixel] = MatrixImage[Pixel](Array.ofDim(height, width))
+    var image_tmp: Image[RGBPixel] = MatrixImage[RGBPixel](Array.ofDim(height, width))
     var i = 0
     while( i < height){
       var j = 0
