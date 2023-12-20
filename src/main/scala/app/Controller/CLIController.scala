@@ -5,106 +5,97 @@ import AsciiConvertor.Front.FileLoaders.{JPGFileLoader, PNGFileLoader}
 import AsciiConvertor.Front.{Loader, RandLoader}
 import AsciiConvertor.Middle.Convertor.Table.{Convertor, FullLinearConvertor, NonLinearConvertor, ShortLinearConvertor, UserConvertor}
 import AsciiConvertor.Middle.Filter.{BrightnessFilter, Filter, FlipXFilter, FlipYFilter, InvertFilter}
-import app.Controller.CLIArguments.{CLIArgument, CLIComplicatedArgument, CLISimpleArgument}
+import app.Controller.Argument.CLIArguments.{CLIArgument, CLIComplicatedArgument, CLISimpleArgument}
+import app.Controller.Argument.InerArgument.{BackArgument, Argument, ConvertorArgument, FilterArgument, FrontArgument}
+import app.Controller.parser.ParseCLIArguments
 
 
 class CLIController(args: Array[String]) extends Controller {
-  private val CLIArgument = parseArgs()
 
-  def parseArgs(): List[CLIArgument] = {
-    val arguments = args.toBuffer
-    var ret = List[CLIArgument]()
-    while (arguments.nonEmpty) {
-      arguments.head match {
-        case s if Set("--image-random", "--invert", "--output-console").contains(s) => {
-          ret = ret.appended(CLISimpleArgument(s))
-          arguments -= arguments.head
+  override var loader: Option[Loader] = Option.empty
+  override var convertor: Option[Convertor] = Option.empty
+  override var outputers: Seq[Output[Char]] = Seq()
+  override var filters: Seq[Filter] = Seq()
+
+  override val AllArguments: Map[String, ArgumentProperties] = Map.apply(
+    "--image-random" -> ArgumentProperties(0, FrontArgument(arg => {
+      RandLoader()
+    })),
+    "--invert" -> ArgumentProperties(0, FilterArgument(arg => {
+      InvertFilter()
+    })),
+    "--output-console" -> ArgumentProperties(0, BackArgument(arg => {
+      OutputInConsole()
+    })),
+    "--image" -> ArgumentProperties(1, FrontArgument({
+      case CLIComplicatedArgument("--image", List(s)) if s.endsWith("png") => PNGFileLoader(s)
+      case CLIComplicatedArgument("--image", List(s)) if s.endsWith("jpg") => JPGFileLoader(s)
+      case _ => throw new IllegalArgumentException("Unsupported file extension")
+    })),
+    "--flip" -> ArgumentProperties(1, FilterArgument({
+      case CLIComplicatedArgument("--flip", List("x")) => FlipXFilter()
+      case CLIComplicatedArgument("--flip", List("y")) => FlipYFilter()
+      case _ => throw new IllegalArgumentException("Unsupported coordinates")
+    })),
+    "--brightness" -> ArgumentProperties(1, FilterArgument({
+      case CLIComplicatedArgument("--brightness", List(s)) => BrightnessFilter(s.toInt)
+    })),
+    "--table" -> ArgumentProperties(1, ConvertorArgument({
+      case CLIComplicatedArgument("--table", List("short")) => ShortLinearConvertor()
+      case CLIComplicatedArgument("--table", List("full")) => FullLinearConvertor()
+      case CLIComplicatedArgument("--table", List("non-linear")) => NonLinearConvertor()
+      case CLIComplicatedArgument("--table", _) => throw new IllegalArgumentException("Unknown name of a table")
+
+    }))
+    ,
+    "--custom-table" -> ArgumentProperties(1, ConvertorArgument({
+      case CLIComplicatedArgument("--custom-table", List(s)) if (s.nonEmpty && s.length <= 256) =>
+        UserConvertor(s)
+      case _ => throw new IllegalArgumentException("Wrong table")
+
+    }))
+    ,
+    "--output-file" -> ArgumentProperties(1, BackArgument({
+      case CLIComplicatedArgument("--output-file", List(s)) => OutputIntoFile(s)
+    }))
+  )
+
+  val CLIArguments: Seq[CLIArgument] = giveArgs()
+
+  def giveArgs() = {
+    var simpleArguments = List[String]()
+    var nonSimpleArguments = List[String]()
+    for (i <- AllArguments) {
+
+      if (i._2.operands == 1)
+        nonSimpleArguments = nonSimpleArguments.appended(i._1)
+      else
+        simpleArguments = simpleArguments.appended(i._1)
+    }
+    ParseCLIArguments(simpleArguments, nonSimpleArguments).parse(args)
+  }
+
+  override def fullFillValues: Unit = {
+    for (i <- CLIArguments) {
+      AllArguments.get(i.name) match {
+        case Some(ArgumentProperties(_, FrontArgument(c))) => {
+          if (loader.nonEmpty)
+            throw new IllegalArgumentException("More than 1 input argument")
+          loader = Option(c(i))
         }
-        case c if (arguments.length > 1 && Set("--image", "--flip", "--brightness", "--table", "--custom-table", "--output-file").contains(c)) => {
-          ret = ret.appended(CLIComplicatedArgument(c, List(arguments(1))))
-          arguments -= arguments.head
-          arguments -= arguments.head
+        case Some(ArgumentProperties(_, ConvertorArgument(c))) => {
+          if (convertor.nonEmpty)
+            throw new IllegalArgumentException("More than 1 input argument")
+          convertor = Option(c(i))
         }
-        case els => throw new IllegalArgumentException(s"Unsupported argument: ${els}")
+        case Some(ArgumentProperties(_, FilterArgument(c))) => {
+          filters = filters.appended(c(i))
+        }
+        case Some(ArgumentProperties(_, BackArgument(c))) => {
+          outputers = outputers.appended(c(i))
+        }
       }
     }
-    ret
-  }
-
-  override def getLoader: Loader = {
-    // Set how image going to be input
-    var loader: Option[Loader] = Option.empty
-
-    for (i <- CLIArgument)
-      i match {
-        case already if ((already.name == "--image-random" || already.name == "--image") && loader.nonEmpty) =>
-          throw new IllegalArgumentException("More than 1 input argument")
-        case CLISimpleArgument("--image-random") => loader = Option(RandLoader())
-        case CLIComplicatedArgument("--image", List(s)) if s.endsWith(".png") => loader = Option(PNGFileLoader(s))
-        case CLIComplicatedArgument("--image", List(s)) if s.endsWith(".jpg") => loader = Option(JPGFileLoader(s))
-        case CLIComplicatedArgument("--image", List(s)) if (!s.endsWith(".jpg") || !s.endsWith(".png"))  =>
-          throw new IllegalArgumentException("Unsupported file extension")
-        case _ =>
-      }
-
-    loader match {
-      case Some(imageLoader) => imageLoader
-      case None => throw new IllegalArgumentException("There is non input argument")
-    }
-  }
-
-  override def getFilters: Seq[Filter] = {
-    var ret = Seq[Filter]()
-
-    for (i <- CLIArgument) {
-      i match {
-        case CLISimpleArgument("--invert") => ret = ret.appended(InvertFilter())
-        case CLIComplicatedArgument("--flip",List("x")) =>ret =  ret.appended(FlipXFilter())
-        case CLIComplicatedArgument("--flip",List("y")) => ret = ret.appended(FlipYFilter())
-        case CLIComplicatedArgument("--brightness",List(s)) => ret = ret.appended(BrightnessFilter(s.toInt))
-        case _ =>
-      }
-    }
-    ret
-  }
-
-  override def getConvertor: Convertor = {
-    // Set to loader its convert table
-    var table: Option[Convertor] = Option.empty
-    for (i <- CLIArgument)
-      i match {
-        case already if ((already.name == "--table" || already.name == "--custom-table") && table.nonEmpty) =>
-          throw new IllegalArgumentException("More than 1 table argument")
-        case CLIComplicatedArgument("--table", List("short")) => table = Option(ShortLinearConvertor())
-        case CLIComplicatedArgument("--table", List("full")) => table = Option(FullLinearConvertor())
-        case CLIComplicatedArgument("--table", List("non-linear")) => table = Option(NonLinearConvertor())
-        case CLIComplicatedArgument("--table", _) => throw new IllegalArgumentException("Unknown name of a table")
-        case CLIComplicatedArgument("--custom-table", List(s)) if (s.nonEmpty && s.length <= 256) =>
-          table = Option(UserConvertor(s))
-        case _ =>
-      }
-
-    table match {
-      case Some(convertor) => convertor
-      case None => ShortLinearConvertor()
-    }
-  }
-
-  override def getOutputer: Seq[Output[Char]] = {
-    var outputers = Seq[Output[Char]]()
-
-    for (i <- CLIArgument) {
-      i match {
-        case CLISimpleArgument("--output-console") => outputers = outputers.appended(OutputInConsole())
-        case CLIComplicatedArgument("--output-file", List(s)) => outputers = outputers.appended(OutputIntoFile(s))
-        case _ =>
-      }
-    }
-
-    if (outputers.isEmpty)
-      throw new IllegalArgumentException("There is non output argument")
-      outputers
-
   }
 
 

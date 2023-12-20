@@ -1,10 +1,8 @@
 package app.Input
 
 import app.Controller.{CLIController, Controller}
-
-import AsciiConvertor.Middle.Convertor.Image.{ImageConvertor,FromRGBToGreyImageConvertor}
-
-import AsciiConvertor.Common.Helper.Helper
+import AsciiConvertor.Middle.Convertor.Image.{FromRGBToGreyImageConvertor, ImageConvertor}
+import app.Helper.Helper
 
 /*
   CLIConsole -- application, which runs in console with command line input
@@ -15,15 +13,14 @@ class CLIConsole(val args: Array[String]) extends Input {
 
   override def loadAndRun(): Unit = {
 
-    if (args.length == 1 && args.head == "--help"){
+    if (args.length == 1 && args.head == "--help") {
       new Helper
       return
     }
 
     try {
-
-
       val controller: Controller = new CLIController(args)
+      controller.fullFillValues
 
       val loader = controller.getLoader
       val filters = controller.getFilters

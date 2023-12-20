@@ -1,4 +1,4 @@
-package AsciiConvertor.Common.Helper
+package app.Helper
 
 //helper _/(.-.)\_ Not much to say
 class Helper {
